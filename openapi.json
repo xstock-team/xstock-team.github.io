@@ -1,0 +1,2643 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "xstock 数字供应云服务 API（分销商侧）",
+    "version": "1.0.0-draft",
+    "description": "v1 接入协约草案。基地址 /dist/api/v1，命令写在路径里：查询命令 GET（data 字段直接作为 query，数组用半角逗号连接），写入命令 POST（请求体为 jcmd 信封）。错误码为整数，0 表示成功。正式细节以接入清单为准。"
+  },
+  "servers": [
+    {
+      "url": "https://api.xstock.example",
+      "description": "占位地址，实际接入地址以开户通知为准"
+    }
+  ],
+  "tags": [
+    {
+      "name": "查询",
+      "description": "只读命令，GET，字段直接进 query"
+    },
+    {
+      "name": "写入",
+      "description": "改变状态的命令，POST，请求体为 jcmd"
+    }
+  ],
+  "paths": {
+    "/dist/api/v1/ping": {
+      "get": {
+        "tags": [
+          "查询"
+        ],
+        "summary": "连通性检测（dujiao-next 兼容）",
+        "operationId": "ping",
+        "description": "查询命令，不使用 jcmd 信封：data 字段直接拼成 query。权限：仅需认证",
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "jcmd 响应；code 为 0 表示成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "id",
+                    "cmd",
+                    "code",
+                    "msg",
+                    "data",
+                    "stamp"
+                  ],
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    },
+                    "cmd": {
+                      "type": "string"
+                    },
+                    "code": {
+                      "type": "integer",
+                      "description": "0 成功；非 0 失败"
+                    },
+                    "msg": {
+                      "type": "string"
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/pingResponse"
+                    },
+                    "stamp": {
+                      "type": "integer",
+                      "format": "int64"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/dist/api/v1/get_categories": {
+      "get": {
+        "tags": [
+          "查询"
+        ],
+        "summary": "获取商品目录（分类）",
+        "operationId": "get_categories",
+        "description": "查询命令，不使用 jcmd 信封：data 字段直接拼成 query。权限：catalog.read",
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "jcmd 响应；code 为 0 表示成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "id",
+                    "cmd",
+                    "code",
+                    "msg",
+                    "data",
+                    "stamp"
+                  ],
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    },
+                    "cmd": {
+                      "type": "string"
+                    },
+                    "code": {
+                      "type": "integer",
+                      "description": "0 成功；非 0 失败"
+                    },
+                    "msg": {
+                      "type": "string"
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/get_categoriesResponse"
+                    },
+                    "stamp": {
+                      "type": "integer",
+                      "format": "int64"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/dist/api/v1/get_goods": {
+      "get": {
+        "tags": [
+          "查询"
+        ],
+        "summary": "获取商品清单（含 SKU）",
+        "operationId": "get_goods",
+        "description": "查询命令，不使用 jcmd 信封：data 字段直接拼成 query。权限：catalog.read",
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "required": false,
+            "description": "页码，从 1 开始，默认 1",
+            "schema": {
+              "type": "integer",
+              "minimum": 1
+            }
+          },
+          {
+            "name": "page_size",
+            "in": "query",
+            "required": false,
+            "description": "每页条数，1–100，默认 20",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100
+            }
+          },
+          {
+            "name": "category_id",
+            "in": "query",
+            "required": false,
+            "description": "按分类过滤（分类数字标识），省略为全部",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "updated_since",
+            "in": "query",
+            "required": false,
+            "description": "只返回该时间之后有变化的商品（RFC 3339），用于增量同步",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "jcmd 响应；code 为 0 表示成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "id",
+                    "cmd",
+                    "code",
+                    "msg",
+                    "data",
+                    "stamp"
+                  ],
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    },
+                    "cmd": {
+                      "type": "string"
+                    },
+                    "code": {
+                      "type": "integer",
+                      "description": "0 成功；非 0 失败"
+                    },
+                    "msg": {
+                      "type": "string"
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/get_goodsResponse"
+                    },
+                    "stamp": {
+                      "type": "integer",
+                      "format": "int64"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/dist/api/v1/get_avail": {
+      "post": {
+        "tags": [
+          "写入"
+        ],
+        "summary": "查询可售数量（按商品，支持指定 SKU）",
+        "operationId": "get_avail",
+        "description": "写入命令，请求体为 jcmd 信封。权限：avail.read",
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "id",
+                  "cmd",
+                  "data",
+                  "stamp"
+                ],
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "description": "消息标识，重试沿用同一个值"
+                  },
+                  "cmd": {
+                    "type": "string",
+                    "const": "get_avail"
+                  },
+                  "data": {
+                    "$ref": "#/components/schemas/get_availRequest"
+                  },
+                  "stamp": {
+                    "type": "integer",
+                    "format": "int64",
+                    "description": "Unix 时间戳（秒）"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "jcmd 响应；code 为 0 表示成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "id",
+                    "cmd",
+                    "code",
+                    "msg",
+                    "data",
+                    "stamp"
+                  ],
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    },
+                    "cmd": {
+                      "type": "string"
+                    },
+                    "code": {
+                      "type": "integer",
+                      "description": "0 成功；非 0 失败"
+                    },
+                    "msg": {
+                      "type": "string"
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/get_availResponse"
+                    },
+                    "stamp": {
+                      "type": "integer",
+                      "format": "int64"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/dist/api/v1/get_quote": {
+      "post": {
+        "tags": [
+          "写入"
+        ],
+        "summary": "获取报价（按商品取单价，不含数量）",
+        "operationId": "get_quote",
+        "description": "写入命令，请求体为 jcmd 信封。权限：quote.read",
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "id",
+                  "cmd",
+                  "data",
+                  "stamp"
+                ],
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "description": "消息标识，重试沿用同一个值"
+                  },
+                  "cmd": {
+                    "type": "string",
+                    "const": "get_quote"
+                  },
+                  "data": {
+                    "$ref": "#/components/schemas/get_quoteRequest"
+                  },
+                  "stamp": {
+                    "type": "integer",
+                    "format": "int64",
+                    "description": "Unix 时间戳（秒）"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "jcmd 响应；code 为 0 表示成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "id",
+                    "cmd",
+                    "code",
+                    "msg",
+                    "data",
+                    "stamp"
+                  ],
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    },
+                    "cmd": {
+                      "type": "string"
+                    },
+                    "code": {
+                      "type": "integer",
+                      "description": "0 成功；非 0 失败"
+                    },
+                    "msg": {
+                      "type": "string"
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/get_quoteResponse"
+                    },
+                    "stamp": {
+                      "type": "integer",
+                      "format": "int64"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/dist/api/v1/post_order": {
+      "post": {
+        "tags": [
+          "写入"
+        ],
+        "summary": "请求下单",
+        "operationId": "post_order",
+        "description": "写入命令，请求体为 jcmd 信封。权限：order.create",
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "id",
+                  "cmd",
+                  "data",
+                  "stamp"
+                ],
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "description": "消息标识，重试沿用同一个值"
+                  },
+                  "cmd": {
+                    "type": "string",
+                    "const": "post_order"
+                  },
+                  "data": {
+                    "$ref": "#/components/schemas/post_orderRequest"
+                  },
+                  "stamp": {
+                    "type": "integer",
+                    "format": "int64",
+                    "description": "Unix 时间戳（秒）"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "jcmd 响应；code 为 0 表示成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "id",
+                    "cmd",
+                    "code",
+                    "msg",
+                    "data",
+                    "stamp"
+                  ],
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    },
+                    "cmd": {
+                      "type": "string"
+                    },
+                    "code": {
+                      "type": "integer",
+                      "description": "0 成功；非 0 失败"
+                    },
+                    "msg": {
+                      "type": "string"
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/post_orderResponse"
+                    },
+                    "stamp": {
+                      "type": "integer",
+                      "format": "int64"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/dist/api/v1/get_orders": {
+      "get": {
+        "tags": [
+          "查询"
+        ],
+        "summary": "查询订单",
+        "operationId": "get_orders",
+        "description": "查询命令，不使用 jcmd 信封：data 字段直接拼成 query。权限：order.read",
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "trace_id",
+            "in": "query",
+            "required": false,
+            "description": "链路追踪标识；返回该 trace_id 下的全部订单（优先级最高）",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "order_no",
+            "in": "query",
+            "required": false,
+            "description": "平台订单号；精确查询单笔订单",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "order_id",
+            "in": "query",
+            "required": false,
+            "description": "订单数字标识；精确查询单笔订单",
+            "schema": {
+              "type": "integer"
+            }
+          },
+          {
+            "name": "with_delivers",
+            "in": "query",
+            "required": false,
+            "description": "是否返回交付物数组，默认 false",
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "jcmd 响应；code 为 0 表示成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "id",
+                    "cmd",
+                    "code",
+                    "msg",
+                    "data",
+                    "stamp"
+                  ],
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    },
+                    "cmd": {
+                      "type": "string"
+                    },
+                    "code": {
+                      "type": "integer",
+                      "description": "0 成功；非 0 失败"
+                    },
+                    "msg": {
+                      "type": "string"
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/get_ordersResponse"
+                    },
+                    "stamp": {
+                      "type": "integer",
+                      "format": "int64"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/dist/api/v1/req_cancel": {
+      "post": {
+        "tags": [
+          "写入"
+        ],
+        "summary": "取消订单",
+        "operationId": "req_cancel",
+        "description": "写入命令，请求体为 jcmd 信封。权限：cancel.write",
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "id",
+                  "cmd",
+                  "data",
+                  "stamp"
+                ],
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "description": "消息标识，重试沿用同一个值"
+                  },
+                  "cmd": {
+                    "type": "string",
+                    "const": "req_cancel"
+                  },
+                  "data": {
+                    "$ref": "#/components/schemas/req_cancelRequest"
+                  },
+                  "stamp": {
+                    "type": "integer",
+                    "format": "int64",
+                    "description": "Unix 时间戳（秒）"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "jcmd 响应；code 为 0 表示成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "id",
+                    "cmd",
+                    "code",
+                    "msg",
+                    "data",
+                    "stamp"
+                  ],
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    },
+                    "cmd": {
+                      "type": "string"
+                    },
+                    "code": {
+                      "type": "integer",
+                      "description": "0 成功；非 0 失败"
+                    },
+                    "msg": {
+                      "type": "string"
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/req_cancelResponse"
+                    },
+                    "stamp": {
+                      "type": "integer",
+                      "format": "int64"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/dist/api/v1/open_ticket": {
+      "post": {
+        "tags": [
+          "写入"
+        ],
+        "summary": "申报售后工单",
+        "operationId": "open_ticket",
+        "description": "写入命令，请求体为 jcmd 信封。权限：after_sales.write",
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "id",
+                  "cmd",
+                  "data",
+                  "stamp"
+                ],
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "description": "消息标识，重试沿用同一个值"
+                  },
+                  "cmd": {
+                    "type": "string",
+                    "const": "open_ticket"
+                  },
+                  "data": {
+                    "$ref": "#/components/schemas/open_ticketRequest"
+                  },
+                  "stamp": {
+                    "type": "integer",
+                    "format": "int64",
+                    "description": "Unix 时间戳（秒）"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "jcmd 响应；code 为 0 表示成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "id",
+                    "cmd",
+                    "code",
+                    "msg",
+                    "data",
+                    "stamp"
+                  ],
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    },
+                    "cmd": {
+                      "type": "string"
+                    },
+                    "code": {
+                      "type": "integer",
+                      "description": "0 成功；非 0 失败"
+                    },
+                    "msg": {
+                      "type": "string"
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/open_ticketResponse"
+                    },
+                    "stamp": {
+                      "type": "integer",
+                      "format": "int64"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/dist/api/v1/req_ticket": {
+      "get": {
+        "tags": [
+          "查询"
+        ],
+        "summary": "查询售后工单全过程",
+        "operationId": "req_ticket",
+        "description": "查询命令，不使用 jcmd 信封：data 字段直接拼成 query。权限：after_sales.read",
+        "security": [
+          {
+            "ApiKeyAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "ticket_no",
+            "in": "query",
+            "required": true,
+            "description": "售后工单号，申报时返回",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "jcmd 响应；code 为 0 表示成功",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "id",
+                    "cmd",
+                    "code",
+                    "msg",
+                    "data",
+                    "stamp"
+                  ],
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    },
+                    "cmd": {
+                      "type": "string"
+                    },
+                    "code": {
+                      "type": "integer",
+                      "description": "0 成功；非 0 失败"
+                    },
+                    "msg": {
+                      "type": "string"
+                    },
+                    "data": {
+                      "$ref": "#/components/schemas/req_ticketResponse"
+                    },
+                    "stamp": {
+                      "type": "integer",
+                      "format": "int64"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "ApiKeyAuth": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "X-Xstock-Api-Key",
+        "description": "店铺 API Key；签名见 X-Xstock-Signature（HMAC-SHA256）。"
+      }
+    },
+    "schemas": {
+      "pingRequest": {
+        "type": "object",
+        "description": "空对象；用于确认签名与网络链路可用",
+        "properties": {}
+      },
+      "pingResponse": {
+        "type": "object",
+        "required": [
+          "pong",
+          "protocol",
+          "protocol_ver",
+          "server_time",
+          "site_name",
+          "balance"
+        ],
+        "properties": {
+          "pong": {
+            "type": "boolean",
+            "description": "恒为 true，表示服务可达"
+          },
+          "protocol": {
+            "type": "string",
+            "description": "当前对接协议名，例如 dujiao-next-v1，用于兼容判断"
+          },
+          "protocol_ver": {
+            "type": "string",
+            "description": "协议版本"
+          },
+          "server_time": {
+            "type": "string",
+            "description": "平台时间（UTC RFC 3339），可用于校准时钟偏差"
+          },
+          "site_name": {
+            "type": "string",
+            "description": "站点名称，便于下游在后台展示"
+          },
+          "balance": {
+            "type": "object",
+            "required": [
+              "amt",
+              "ccy"
+            ],
+            "properties": {
+              "amt": {
+                "type": "string",
+                "description": "十进制字符串金额，例如 19.00；不要用浮点数解析"
+              },
+              "ccy": {
+                "type": "string",
+                "description": "币种代码，例如 CNY"
+              }
+            },
+            "description": "当前店铺可用余额"
+          },
+          "member_level": {
+            "type": "object",
+            "description": "账户等级；无等级方案时为空对象",
+            "properties": {
+              "code": {
+                "type": "string",
+                "description": "等级代码，如 gold"
+              },
+              "name": {
+                "type": "object",
+                "additionalProperties": {
+                  "type": "string"
+                },
+                "description": "等级名称的多语言映射，键为 BCP-47 语言标签"
+              }
+            }
+          }
+        }
+      },
+      "get_categoriesRequest": {
+        "type": "object",
+        "description": "无参数；分类数量有限，一次全量返回",
+        "properties": {}
+      },
+      "get_categoriesResponse": {
+        "type": "object",
+        "required": [
+          "default_locale",
+          "categories"
+        ],
+        "properties": {
+          "default_locale": {
+            "type": "string",
+            "description": "本次返回内容的默认语言（回退所用），如 zh-CN"
+          },
+          "categories": {
+            "type": "array",
+            "description": "分类目录，按 sort_order 降序",
+            "items": {
+              "type": "object",
+              "required": [
+                "category_id",
+                "guid",
+                "name"
+              ],
+              "properties": {
+                "category_id": {
+                  "type": "integer",
+                  "format": "int64",
+                  "description": "分类数字标识（对下游稳定的协议别名，不复用）"
+                },
+                "guid": {
+                  "type": "string",
+                  "description": "分类 GUID 字符串（32 位小写十六进制），稳定不变；与数字 ID 指向同一分类"
+                },
+                "parent_id": {
+                  "type": "integer",
+                  "format": "int64",
+                  "description": "父分类数字标识；一级分类为 0"
+                },
+                "name": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "description": "分类名称的多语言映射，键为 BCP-47 语言标签，如 { \"zh-CN\": \"流媒体\", \"en\": \"Streaming\" }"
+                },
+                "sort_order": {
+                  "type": "integer",
+                  "description": "排序权重，越大越靠前"
+                },
+                "thumb": {
+                  "type": "string",
+                  "description": "分类图片地址（URL）；无图时为空串，可直接用于商城分类页"
+                },
+                "goods_count": {
+                  "type": "integer",
+                  "description": "该分类下的商品数量（含子分类）"
+                }
+              }
+            }
+          }
+        }
+      },
+      "get_goodsRequest": {
+        "type": "object",
+        "properties": {
+          "page": {
+            "type": "integer",
+            "minimum": 1,
+            "description": "页码，从 1 开始，默认 1"
+          },
+          "page_size": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 100,
+            "description": "每页条数，1–100，默认 20"
+          },
+          "category_id": {
+            "type": "integer",
+            "format": "int64",
+            "description": "按分类过滤（分类数字标识），省略为全部"
+          },
+          "updated_since": {
+            "type": "string",
+            "description": "只返回该时间之后有变化的商品（RFC 3339），用于增量同步"
+          }
+        }
+      },
+      "get_goodsResponse": {
+        "type": "object",
+        "required": [
+          "page",
+          "page_size",
+          "total",
+          "default_locale",
+          "default_ccy",
+          "items"
+        ],
+        "properties": {
+          "page": {
+            "type": "integer",
+            "description": "当前页码"
+          },
+          "page_size": {
+            "type": "integer",
+            "description": "每页条数"
+          },
+          "total": {
+            "type": "integer",
+            "description": "商品总数"
+          },
+          "has_more": {
+            "type": "boolean",
+            "description": "是否还有下一页"
+          },
+          "default_locale": {
+            "type": "string",
+            "description": "本次返回内容的默认语言（回退所用），如 zh-CN"
+          },
+          "default_ccy": {
+            "type": "string",
+            "description": "默认币种（ISO 4217 或 USDT）；prices 中一定包含该币种"
+          },
+          "items": {
+            "type": "array",
+            "description": "商品清单，每个商品带完整 SKU 列表",
+            "items": {
+              "type": "object",
+              "required": [
+                "goods_id",
+                "guid",
+                "title",
+                "default_locale",
+                "default_ccy",
+                "images",
+                "prices",
+                "min_qty",
+                "max_qty",
+                "per",
+                "skus"
+              ],
+              "properties": {
+                "goods_id": {
+                  "type": "integer",
+                  "format": "int64",
+                  "description": "商品数字标识（对下游稳定的协议别名，不复用）"
+                },
+                "guid": {
+                  "type": "string",
+                  "description": "商品 GUID 字符串（32 位小写十六进制），稳定不变；与数字 ID 指向同一商品"
+                },
+                "title": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "description": "商品名称的多语言映射，键为 BCP-47 语言标签"
+                },
+                "default_locale": {
+                  "type": "string",
+                  "description": "该商品内容的回退语言；不同商品可用的语言可能不同"
+                },
+                "default_ccy": {
+                  "type": "string",
+                  "description": "该商品的默认计价币种；prices 中一定包含该币种"
+                },
+                "category_id": {
+                  "type": "integer",
+                  "format": "int64",
+                  "description": "所属分类数字标识"
+                },
+                "fulfillment_type": {
+                  "type": "string",
+                  "enum": [
+                    "auto",
+                    "manual",
+                    "service"
+                  ],
+                  "description": "交付方式：自动 / 人工 / 服务类"
+                },
+                "summary": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "description": "商品简介的多语言映射，可展示在商详页"
+                },
+                "images": {
+                  "type": "array",
+                  "description": "商品图片地址列表（绝对 URL），上游必须提供；无图时为空数组",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "tags": {
+                  "type": "array",
+                  "description": "商品标签，用于筛选与展示",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "prices": {
+                  "type": "array",
+                  "description": "商品级多币种价格，每个元素为 { amt, ccy }；无 SKU 的商品按此价格销售，有 SKU 时以 SKU 价格为准",
+                  "items": {
+                    "type": "object",
+                    "required": [
+                      "amt",
+                      "ccy"
+                    ],
+                    "properties": {
+                      "amt": {
+                        "type": "string",
+                        "description": "十进制字符串金额，例如 19.00；不要用浮点数解析"
+                      },
+                      "ccy": {
+                        "type": "string",
+                        "description": "币种代码，例如 CNY"
+                      }
+                    }
+                  }
+                },
+                "original_prices": {
+                  "type": "array",
+                  "description": "商品级多币种原价（划线价）；无折扣时为空数组",
+                  "items": {
+                    "type": "object",
+                    "required": [
+                      "amt",
+                      "ccy"
+                    ],
+                    "properties": {
+                      "amt": {
+                        "type": "string",
+                        "description": "十进制字符串金额，例如 19.00；不要用浮点数解析"
+                      },
+                      "ccy": {
+                        "type": "string",
+                        "description": "币种代码，例如 CNY"
+                      }
+                    }
+                  }
+                },
+                "min_qty": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "description": "商品级最小起订量"
+                },
+                "max_qty": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "description": "商品级单次最大购买量；0 表示不限"
+                },
+                "per": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "description": "商品级购买步长（每次增量的数量），数字"
+                },
+                "manual_deliver_schema": {
+                  "type": "object",
+                  "description": "人工交付时后台需要填写的字段定义（JSON Schema 形式），随商品不同而变化；非人工交付时为空对象",
+                  "additionalProperties": true
+                },
+                "is_active": {
+                  "type": "boolean",
+                  "description": "是否在售；false 时不要上架"
+                },
+                "updated_at": {
+                  "type": "string",
+                  "description": "最近变更时间，UTC RFC 3339"
+                },
+                "skus": {
+                  "type": "array",
+                  "description": "SKU 列表；可为空数组（无规格的商品按商品级 price 销售）",
+                  "items": {
+                    "type": "object",
+                    "required": [
+                      "sku_id",
+                      "guid",
+                      "default_ccy",
+                      "prices",
+                      "min_qty",
+                      "max_qty",
+                      "per",
+                      "stock_status"
+                    ],
+                    "properties": {
+                      "sku_id": {
+                        "type": "integer",
+                        "format": "int64",
+                        "description": "下单使用的 SKU 数字标识"
+                      },
+                      "guid": {
+                        "type": "string",
+                        "description": "SKU GUID（32 位小写十六进制），跨商品唯一；sku_code 只在同一商品内唯一，不能当全局标识"
+                      },
+                      "sku_code": {
+                        "type": "string",
+                        "description": "SKU 编码，同一商品内唯一；单规格固定 DEFAULT"
+                      },
+                      "default_ccy": {
+                        "type": "string",
+                        "description": "该 SKU 的默认计价币种；prices 中一定包含该币种"
+                      },
+                      "spec_values": {
+                        "type": "object",
+                        "description": "规格值，例如 {\"时长\":\"月付\"}",
+                        "additionalProperties": true
+                      },
+                      "prices": {
+                        "type": "array",
+                        "description": "该 SKU 的多币种供货价（未应用等级优惠），每个元素为 { amt, ccy }",
+                        "items": {
+                          "type": "object",
+                          "required": [
+                            "amt",
+                            "ccy"
+                          ],
+                          "properties": {
+                            "amt": {
+                              "type": "string",
+                              "description": "十进制字符串金额，例如 19.00；不要用浮点数解析"
+                            },
+                            "ccy": {
+                              "type": "string",
+                              "description": "币种代码，例如 CNY"
+                            }
+                          }
+                        }
+                      },
+                      "original_prices": {
+                        "type": "array",
+                        "description": "该 SKU 的多币种原价；无折扣时为空数组",
+                        "items": {
+                          "type": "object",
+                          "required": [
+                            "amt",
+                            "ccy"
+                          ],
+                          "properties": {
+                            "amt": {
+                              "type": "string",
+                              "description": "十进制字符串金额，例如 19.00；不要用浮点数解析"
+                            },
+                            "ccy": {
+                              "type": "string",
+                              "description": "币种代码，例如 CNY"
+                            }
+                          }
+                        }
+                      },
+                      "min_qty": {
+                        "type": "integer",
+                        "minimum": 1,
+                        "description": "该 SKU 的最小起订量"
+                      },
+                      "max_qty": {
+                        "type": "integer",
+                        "minimum": 1,
+                        "description": "该 SKU 单次最大购买量；0 表示不限"
+                      },
+                      "per": {
+                        "type": "integer",
+                        "minimum": 1,
+                        "description": "该 SKU 的购买步长（每次增量的数量），数字"
+                      },
+                      "stock_status": {
+                        "type": "string",
+                        "enum": [
+                          "unlimited",
+                          "in_stock",
+                          "low_stock",
+                          "out_of_stock"
+                        ],
+                        "description": "库存状态：无限 / 有货 / 少量 / 缺货"
+                      },
+                      "stock_quantity": {
+                        "type": "integer",
+                        "description": "可售数量；-1 表示不限量"
+                      },
+                      "is_active": {
+                        "type": "boolean",
+                        "description": "SKU 是否启用"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "get_availRequest": {
+        "type": "object",
+        "required": [
+          "items"
+        ],
+        "properties": {
+          "items": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 20,
+            "description": "要查询的商品，1–20 个；每个商品用 goods_id 或 guid 定位，guid 优先",
+            "items": {
+              "type": "object",
+              "properties": {
+                "goods_id": {
+                  "type": "integer",
+                  "format": "int64",
+                  "description": "商品数字标识；与 guid 至少给一个"
+                },
+                "guid": {
+                  "type": "string",
+                  "description": "商品 GUID 字符串；同时传时以 guid 为准，goods_id 被忽略"
+                },
+                "skus": {
+                  "type": "array",
+                  "maxItems": 100,
+                  "description": "可选：只想查部分 SKU 时给出；每个 SKU 用 sku_id 或 guid，guid 优先。省略则返回该商品全部 SKU",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "sku_id": {
+                        "type": "integer",
+                        "format": "int64",
+                        "description": "SKU 数字标识"
+                      },
+                      "guid": {
+                        "type": "string",
+                        "description": "SKU GUID；同时传时以 guid 为准，sku_id 被忽略"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "get_availResponse": {
+        "type": "object",
+        "required": [
+          "checked_at",
+          "items"
+        ],
+        "properties": {
+          "checked_at": {
+            "type": "string",
+            "description": "本次采集时间，UTC RFC 3339"
+          },
+          "items": {
+            "type": "array",
+            "description": "与请求顺序不一定一致，请按 goods_id / guid 匹配",
+            "items": {
+              "type": "object",
+              "required": [
+                "goods_id",
+                "guid",
+                "sellable",
+                "available_qty",
+                "min_qty",
+                "max_qty",
+                "per",
+                "skus"
+              ],
+              "properties": {
+                "goods_id": {
+                  "type": "integer",
+                  "format": "int64",
+                  "description": "商品数字标识"
+                },
+                "guid": {
+                  "type": "string",
+                  "description": "商品 GUID 字符串"
+                },
+                "sellable": {
+                  "type": "boolean",
+                  "description": "该商品当前是否可下单；false 时不要展示购买按钮"
+                },
+                "available_qty": {
+                  "type": "string",
+                  "description": "商品级可售数量（其下 SKU 可售数量之和），保守口径：无法确认时报 0"
+                },
+                "min_qty": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "description": "商品级最小起订量"
+                },
+                "max_qty": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "description": "商品级单次最大购买量；0 表示不限"
+                },
+                "per": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "description": "商品级购买步长（每次增量的数量），数字"
+                },
+                "checked_at": {
+                  "type": "string",
+                  "description": "该数值的采集时间"
+                },
+                "skus": {
+                  "type": "array",
+                  "description": "各 SKU 的可售情况；请求里指定 skus 时只返回这些 SKU",
+                  "items": {
+                    "type": "object",
+                    "required": [
+                      "sku_id",
+                      "guid",
+                      "sellable",
+                      "available_qty",
+                      "min_qty",
+                      "max_qty",
+                      "per"
+                    ],
+                    "properties": {
+                      "sku_id": {
+                        "type": "integer",
+                        "format": "int64",
+                        "description": "SKU 数字标识"
+                      },
+                      "guid": {
+                        "type": "string",
+                        "description": "SKU GUID 字符串"
+                      },
+                      "sellable": {
+                        "type": "boolean",
+                        "description": "该 SKU 当前是否可下单"
+                      },
+                      "available_qty": {
+                        "type": "string",
+                        "description": "SKU 可售数量（十进制字符串），无法确认时报 0"
+                      },
+                      "min_qty": {
+                        "type": "integer",
+                        "minimum": 1,
+                        "description": "该 SKU 的最小起订量"
+                      },
+                      "max_qty": {
+                        "type": "integer",
+                        "minimum": 1,
+                        "description": "该 SKU 单次最大购买量；0 表示不限"
+                      },
+                      "per": {
+                        "type": "integer",
+                        "minimum": 1,
+                        "description": "SKU 购买步长（每次增量的数量），数字"
+                      },
+                      "checked_at": {
+                        "type": "string",
+                        "description": "该数值的采集时间"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "get_quoteRequest": {
+        "type": "object",
+        "required": [
+          "items"
+        ],
+        "properties": {
+          "items": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 20,
+            "description": "要报价的商品，1–20 个；每个商品用 goods_id 或 guid 定位，guid 优先",
+            "items": {
+              "type": "object",
+              "properties": {
+                "goods_id": {
+                  "type": "integer",
+                  "format": "int64",
+                  "description": "商品数字标识；与 guid 至少给一个"
+                },
+                "guid": {
+                  "type": "string",
+                  "description": "商品 GUID 字符串；同时传时以 guid 为准，goods_id 被忽略"
+                },
+                "skus": {
+                  "type": "array",
+                  "maxItems": 100,
+                  "description": "可选：只想报部分 SKU 时给出；每个 SKU 用 sku_id 或 guid，guid 优先。省略则报价该商品全部 SKU",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "sku_id": {
+                        "type": "integer",
+                        "format": "int64",
+                        "description": "SKU 数字标识"
+                      },
+                      "guid": {
+                        "type": "string",
+                        "description": "SKU GUID；同时传时以 guid 为准，sku_id 被忽略"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "get_quoteResponse": {
+        "type": "object",
+        "required": [
+          "quote_id",
+          "checked_at",
+          "items"
+        ],
+        "properties": {
+          "quote_id": {
+            "type": "string",
+            "description": "报价标识，下单时可带上统一本次单价"
+          },
+          "checked_at": {
+            "type": "string",
+            "description": "本次报价的采集时间，UTC RFC 3339"
+          },
+          "items": {
+            "type": "array",
+            "description": "与请求顺序不一定一致，请按 goods_id / guid 匹配",
+            "items": {
+              "type": "object",
+              "required": [
+                "goods_id",
+                "guid",
+                "default_ccy",
+                "base_prices",
+                "prices",
+                "checked_at",
+                "skus"
+              ],
+              "properties": {
+                "goods_id": {
+                  "type": "integer",
+                  "format": "int64",
+                  "description": "商品数字标识"
+                },
+                "guid": {
+                  "type": "string",
+                  "description": "商品 GUID 字符串"
+                },
+                "default_ccy": {
+                  "type": "string",
+                  "description": "该商品的默认计价币种；prices 中一定包含该币种"
+                },
+                "base_prices": {
+                  "type": "array",
+                  "description": "商品级多币种基础单价；无 SKU 的商品按它成交",
+                  "items": {
+                    "type": "object",
+                    "required": [
+                      "amt",
+                      "ccy"
+                    ],
+                    "properties": {
+                      "amt": {
+                        "type": "string",
+                        "description": "十进制字符串金额，例如 19.00；不要用浮点数解析"
+                      },
+                      "ccy": {
+                        "type": "string",
+                        "description": "币种代码，例如 CNY"
+                      }
+                    }
+                  }
+                },
+                "prices": {
+                  "type": "array",
+                  "description": "商品级多币种成交单价（已应用等级优惠）",
+                  "items": {
+                    "type": "object",
+                    "required": [
+                      "amt",
+                      "ccy"
+                    ],
+                    "properties": {
+                      "amt": {
+                        "type": "string",
+                        "description": "十进制字符串金额，例如 19.00；不要用浮点数解析"
+                      },
+                      "ccy": {
+                        "type": "string",
+                        "description": "币种代码，例如 CNY"
+                      }
+                    }
+                  }
+                },
+                "checked_at": {
+                  "type": "string",
+                  "description": "该商品价格的采集时间，UTC RFC 3339"
+                },
+                "skus": {
+                  "type": "array",
+                  "description": "各 SKU 的单价；请求里指定 skus 时只返回这些 SKU",
+                  "items": {
+                    "type": "object",
+                    "required": [
+                      "sku_id",
+                      "guid",
+                      "default_ccy",
+                      "base_prices",
+                      "prices",
+                      "checked_at"
+                    ],
+                    "properties": {
+                      "sku_id": {
+                        "type": "integer",
+                        "format": "int64",
+                        "description": "SKU 数字标识"
+                      },
+                      "guid": {
+                        "type": "string",
+                        "description": "SKU GUID 字符串"
+                      },
+                      "default_ccy": {
+                        "type": "string",
+                        "description": "该 SKU 的默认计价币种；prices 中一定包含该币种"
+                      },
+                      "base_prices": {
+                        "type": "array",
+                        "description": "未含等级优惠的多币种基础单价，每个元素为 { amt, ccy }",
+                        "items": {
+                          "type": "object",
+                          "required": [
+                            "amt",
+                            "ccy"
+                          ],
+                          "properties": {
+                            "amt": {
+                              "type": "string",
+                              "description": "十进制字符串金额，例如 19.00；不要用浮点数解析"
+                            },
+                            "ccy": {
+                              "type": "string",
+                              "description": "币种代码，例如 CNY"
+                            }
+                          }
+                        }
+                      },
+                      "prices": {
+                        "type": "array",
+                        "description": "应用等级优惠后的多币种成交单价",
+                        "items": {
+                          "type": "object",
+                          "required": [
+                            "amt",
+                            "ccy"
+                          ],
+                          "properties": {
+                            "amt": {
+                              "type": "string",
+                              "description": "十进制字符串金额，例如 19.00；不要用浮点数解析"
+                            },
+                            "ccy": {
+                              "type": "string",
+                              "description": "币种代码，例如 CNY"
+                            }
+                          }
+                        }
+                      },
+                      "checked_at": {
+                        "type": "string",
+                        "description": "该 SKU 价格的采集时间，UTC RFC 3339"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post_orderRequest": {
+        "type": "object",
+        "required": [
+          "req_id",
+          "items"
+        ],
+        "properties": {
+          "req_id": {
+            "type": "string",
+            "description": "幂等键，店铺内唯一，1–64 字符；重试必须复用同一个值",
+            "examples": [
+              "shop-a-20261124-0001"
+            ]
+          },
+          "dstm_order_ref": {
+            "type": "string",
+            "description": "商城侧订单号，用于对账与客服定位"
+          },
+          "trace_id": {
+            "type": "string",
+            "description": "你的链路追踪标识，回调原样带回"
+          },
+          "callback_uri": {
+            "type": "string",
+            "description": "本单状态回调地址（绝对 URL）；不传则用门户配置的回调地址"
+          },
+          "quote_id": {
+            "type": "string",
+            "description": "报价标识；带上则按该报价金额成交"
+          },
+          "items": {
+            "type": "array",
+            "minItems": 1,
+            "maxItems": 20,
+            "description": "订单行，1–20 行",
+            "items": {
+              "type": "object",
+              "required": [
+                "qty"
+              ],
+              "properties": {
+                "sku_id": {
+                  "type": "integer",
+                  "format": "int64",
+                  "description": "SKU 数字标识；与 sku_guid 至少给一个"
+                },
+                "sku_guid": {
+                  "type": "string",
+                  "description": "SKU GUID 字符串；同时传时以 sku_guid 为准，sku_id 被忽略"
+                },
+                "qty": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "description": "数量，整数"
+                },
+                "manual_schema": {
+                  "type": "object",
+                  "description": "人工交付需要填写的字段，按商品清单的 manual_deliver_schema 传入；自动交付不传",
+                  "additionalProperties": true
+                }
+              }
+            }
+          },
+          "remark": {
+            "type": "string",
+            "description": "备注，不放敏感信息"
+          }
+        }
+      },
+      "post_orderResponse": {
+        "type": "object",
+        "required": [
+          "req_id",
+          "trace_id",
+          "accept_state",
+          "total",
+          "lines"
+        ],
+        "properties": {
+          "req_id": {
+            "type": "string",
+            "description": "回显你提交的幂等键 req_id"
+          },
+          "trace_id": {
+            "type": "string",
+            "description": "回显你提交的 trace_id"
+          },
+          "accept_state": {
+            "type": "string",
+            "enum": [
+              "received",
+              "accepted",
+              "rejected"
+            ],
+            "description": "受理状态：已收到 / 已受理 / 已拒绝"
+          },
+          "order_id": {
+            "type": "integer",
+            "format": "int64",
+            "description": "订单数字标识；接单成功才有值，失败时为空"
+          },
+          "order_no": {
+            "type": "string",
+            "description": "平台订单号，按不透明字符串处理；接单成功才有值",
+            "examples": [
+              "XS20261124000123"
+            ]
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "paid",
+              "fulfilling",
+              "delivered",
+              "completed",
+              "canceled"
+            ],
+            "description": "接单后的聚合状态，便于下游直接映射"
+          },
+          "fulfill_state": {
+            "type": "string",
+            "enum": [
+              "none",
+              "full"
+            ],
+            "description": "交付状态；正常新订单不出现部分交付"
+          },
+          "fund_state": {
+            "type": "string",
+            "enum": [
+              "held",
+              "captured",
+              "released",
+              "refunded"
+            ],
+            "description": "资金状态：冻结 / 已扣 / 已释放 / 已退"
+          },
+          "total": {
+            "type": "object",
+            "required": [
+              "amt",
+              "ccy"
+            ],
+            "properties": {
+              "amt": {
+                "type": "string",
+                "description": "十进制字符串金额，例如 19.00；不要用浮点数解析"
+              },
+              "ccy": {
+                "type": "string",
+                "description": "币种代码，例如 CNY"
+              }
+            },
+            "description": "冻结金额"
+          },
+          "created_at": {
+            "type": "string",
+            "description": "创建时间，UTC RFC 3339"
+          },
+          "lines": {
+            "type": "array",
+            "description": "订单行",
+            "items": {
+              "type": "object",
+              "required": [
+                "line_no",
+                "sku_id",
+                "qty"
+              ],
+              "properties": {
+                "line_no": {
+                  "type": "integer",
+                  "description": "行号，从 1 开始"
+                },
+                "sku_id": {
+                  "type": "integer",
+                  "format": "int64",
+                  "description": "SKU 数字标识"
+                },
+                "sku_guid": {
+                  "type": "string",
+                  "description": "SKU GUID 字符串"
+                },
+                "qty": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "description": "数量，整数"
+                },
+                "unit_price": {
+                  "type": "object",
+                  "required": [
+                    "amt",
+                    "ccy"
+                  ],
+                  "properties": {
+                    "amt": {
+                      "type": "string",
+                      "description": "十进制字符串金额，例如 19.00；不要用浮点数解析"
+                    },
+                    "ccy": {
+                      "type": "string",
+                      "description": "币种代码，例如 CNY"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "balance": {
+            "type": "object",
+            "description": "下单后的余额快照",
+            "properties": {
+              "available": {
+                "type": "object",
+                "required": [
+                  "amt",
+                  "ccy"
+                ],
+                "properties": {
+                  "amt": {
+                    "type": "string",
+                    "description": "十进制字符串金额，例如 19.00；不要用浮点数解析"
+                  },
+                  "ccy": {
+                    "type": "string",
+                    "description": "币种代码，例如 CNY"
+                  }
+                }
+              },
+              "held": {
+                "type": "object",
+                "required": [
+                  "amt",
+                  "ccy"
+                ],
+                "properties": {
+                  "amt": {
+                    "type": "string",
+                    "description": "十进制字符串金额，例如 19.00；不要用浮点数解析"
+                  },
+                  "ccy": {
+                    "type": "string",
+                    "description": "币种代码，例如 CNY"
+                  }
+                },
+                "description": "冻结中金额"
+              }
+            }
+          }
+        }
+      },
+      "get_ordersRequest": {
+        "type": "object",
+        "description": "trace_id、order_no、order_id 三选一；优先级 trace_id > order_no > order_id",
+        "properties": {
+          "trace_id": {
+            "type": "string",
+            "description": "链路追踪标识；返回该 trace_id 下的全部订单（优先级最高）"
+          },
+          "order_no": {
+            "type": "string",
+            "description": "平台订单号；精确查询单笔订单"
+          },
+          "order_id": {
+            "type": "integer",
+            "format": "int64",
+            "description": "订单数字标识；精确查询单笔订单"
+          },
+          "with_delivers": {
+            "type": "boolean",
+            "description": "是否返回交付物数组，默认 false"
+          }
+        }
+      },
+      "get_ordersResponse": {
+        "type": "array",
+        "description": "订单数组；按 trace_id 查询时可能返回多笔，按 order_no / order_id 查询时最多一笔",
+        "items": {
+          "type": "object",
+          "required": [
+            "order_id",
+            "order_no",
+            "status",
+            "trace_id",
+            "accept_state",
+            "fulfill_state",
+            "fund_state",
+            "ticket_state",
+            "total",
+            "lines"
+          ],
+          "properties": {
+            "order_id": {
+              "type": "integer",
+              "format": "int64",
+              "description": "订单数字标识（协议别名）"
+            },
+            "order_no": {
+              "type": "string",
+              "description": "平台订单号"
+            },
+            "status": {
+              "type": "string",
+              "enum": [
+                "pending_payment",
+                "paid",
+                "fulfilling",
+                "partially_delivered",
+                "delivered",
+                "completed",
+                "canceled"
+              ],
+              "description": "聚合状态，便于下游直接映射；与下方分维度状态同时返回"
+            },
+            "trace_id": {
+              "type": "string",
+              "description": "提交时的链路追踪标识"
+            },
+            "dstm_order_ref": {
+              "type": "string",
+              "description": "商城侧订单号"
+            },
+            "accept_state": {
+              "type": "string",
+              "enum": [
+                "received",
+                "accepted",
+                "rejected"
+              ],
+              "description": "受理状态：已收到 / 已受理 / 已拒绝"
+            },
+            "fulfill_state": {
+              "type": "string",
+              "enum": [
+                "none",
+                "full"
+              ],
+              "description": "交付状态；正常新订单不出现部分交付"
+            },
+            "fund_state": {
+              "type": "string",
+              "enum": [
+                "held",
+                "captured",
+                "released",
+                "refunded"
+              ],
+              "description": "资金状态：冻结 / 已扣 / 已释放 / 已退"
+            },
+            "ticket_state": {
+              "type": "string",
+              "enum": [
+                "none",
+                "open",
+                "resolving",
+                "resolved"
+              ],
+              "description": "售后状态"
+            },
+            "total": {
+              "type": "object",
+              "required": [
+                "amt",
+                "ccy"
+              ],
+              "properties": {
+                "amt": {
+                  "type": "string",
+                  "description": "十进制字符串金额，例如 19.00；不要用浮点数解析"
+                },
+                "ccy": {
+                  "type": "string",
+                  "description": "币种代码，例如 CNY"
+                }
+              },
+              "description": "订单金额"
+            },
+            "created_at": {
+              "type": "string",
+              "description": "创建时间"
+            },
+            "fulfilled_at": {
+              "type": "string",
+              "description": "交付完成时间；未交付时为空"
+            },
+            "cancelled_at": {
+              "type": "string",
+              "description": "取消时间；未取消时为空"
+            },
+            "lines": {
+              "type": "array",
+              "description": "订单行",
+              "items": {
+                "type": "object",
+                "required": [
+                  "line_no",
+                  "sku_id",
+                  "qty",
+                  "unit_price"
+                ],
+                "properties": {
+                  "line_no": {
+                    "type": "integer",
+                    "description": "行号"
+                  },
+                  "sku_id": {
+                    "type": "integer",
+                    "format": "int64",
+                    "description": "SKU 数字标识"
+                  },
+                  "sku_guid": {
+                    "type": "string",
+                    "description": "SKU GUID 字符串"
+                  },
+                  "qty": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "description": "下单数量，整数"
+                  },
+                  "fulfilled_qty": {
+                    "type": "integer",
+                    "description": "已交付数量，整数"
+                  },
+                  "unit_price": {
+                    "type": "object",
+                    "required": [
+                      "amt",
+                      "ccy"
+                    ],
+                    "properties": {
+                      "amt": {
+                        "type": "string",
+                        "description": "十进制字符串金额，例如 19.00；不要用浮点数解析"
+                      },
+                      "ccy": {
+                        "type": "string",
+                        "description": "币种代码，例如 CNY"
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "delivers": {
+              "type": "array",
+              "description": "交付物数组，每个元素对应一个 SKU 的一份交付物；仅在 with_delivers=true 时返回",
+              "items": {
+                "type": "object",
+                "required": [
+                  "line_no",
+                  "sku_id",
+                  "artifact_id",
+                  "kind"
+                ],
+                "properties": {
+                  "line_no": {
+                    "type": "integer",
+                    "description": "所属订单行号"
+                  },
+                  "sku_id": {
+                    "type": "integer",
+                    "format": "int64",
+                    "description": "所属 SKU 数字标识"
+                  },
+                  "sku_guid": {
+                    "type": "string",
+                    "description": "所属 SKU GUID 字符串"
+                  },
+                  "artifact_id": {
+                    "type": "string",
+                    "description": "交付物标识，用于售后举证"
+                  },
+                  "kind": {
+                    "type": "string",
+                    "enum": [
+                      "acct_bundle",
+                      "secret_code",
+                      "file_asset",
+                      "download_ref"
+                    ],
+                    "description": "交付物类型"
+                  },
+                  "logical_unit_cnt": {
+                    "type": "integer",
+                    "description": "包含的商品份数，通常为 1"
+                  },
+                  "content": {
+                    "type": "object",
+                    "description": "直接可读内容，结构随 kind 不同；大文件可能为空",
+                    "additionalProperties": true
+                  },
+                  "content_ref": {
+                    "type": "string",
+                    "description": "大文件或敏感内容的引用地址"
+                  },
+                  "expires_at": {
+                    "type": "string",
+                    "description": "引用地址失效时间"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "req_cancelRequest": {
+        "type": "object",
+        "properties": {
+          "order_id": {
+            "type": "integer",
+            "format": "int64",
+            "description": "订单数字标识；与 order_no 二选一"
+          },
+          "order_no": {
+            "type": "string",
+            "description": "要取消的订单；仅未交付订单可取消"
+          },
+          "reason": {
+            "type": "string",
+            "description": "取消原因，便于客服核对"
+          }
+        }
+      },
+      "req_cancelResponse": {
+        "type": "object",
+        "required": [
+          "order_id",
+          "order_no",
+          "cancel_state"
+        ],
+        "properties": {
+          "order_id": {
+            "type": "integer",
+            "format": "int64",
+            "description": "订单数字标识（协议别名）"
+          },
+          "order_no": {
+            "type": "string",
+            "description": "订单号"
+          },
+          "cancel_state": {
+            "type": "string",
+            "enum": [
+              "requested",
+              "done",
+              "rejected"
+            ],
+            "description": "已受理 / 已取消 / 不可取消"
+          },
+          "requested_at": {
+            "type": "string",
+            "description": "取消申请时间"
+          },
+          "reason_code": {
+            "type": "string",
+            "enum": [
+              "NOT_CANCELABLE",
+              "ALREADY_TERMINAL"
+            ],
+            "description": "cancel_state=rejected 时的原因"
+          }
+        }
+      },
+      "open_ticketRequest": {
+        "type": "object",
+        "required": [
+          "description"
+        ],
+        "properties": {
+          "order_id": {
+            "type": "integer",
+            "format": "int64",
+            "description": "订单数字标识；订单售后时给，留空表示全局账户工单"
+          },
+          "order_no": {
+            "type": "string",
+            "description": "订单号；订单售后时给"
+          },
+          "ticket_no": {
+            "type": "string",
+            "description": "接续已有工单时给该工单号；同时给时优先级 ticket_no > order_no > order_id"
+          },
+          "description": {
+            "type": "string",
+            "description": "问题描述，建议含操作步骤与提示原文"
+          },
+          "evidence": {
+            "type": "array",
+            "maxItems": 10,
+            "description": "证据，最多 10 条",
+            "items": {
+              "type": "object",
+              "required": [
+                "kind"
+              ],
+              "properties": {
+                "kind": {
+                  "type": "string",
+                  "enum": [
+                    "text",
+                    "link"
+                  ],
+                  "description": "文本或链接"
+                },
+                "content": {
+                  "type": "string",
+                  "description": "kind=text 时的文本内容"
+                },
+                "url": {
+                  "type": "string",
+                  "description": "kind=link 时的链接地址"
+                }
+              }
+            }
+          }
+        }
+      },
+      "open_ticketResponse": {
+        "type": "object",
+        "required": [
+          "ticket_no",
+          "state",
+          "created_at",
+          "update_at"
+        ],
+        "properties": {
+          "ticket_no": {
+            "type": "string",
+            "description": "售后工单号"
+          },
+          "state": {
+            "type": "string",
+            "enum": [
+              "open",
+              "resolving",
+              "resolved",
+              "rejected"
+            ],
+            "description": "待核实 / 核实中 / 已处理 / 不成立"
+          },
+          "created_at": {
+            "type": "string",
+            "description": "工单创建时间"
+          },
+          "update_at": {
+            "type": "string",
+            "description": "工单最后一次更新时间"
+          }
+        }
+      },
+      "req_ticketRequest": {
+        "type": "object",
+        "required": [
+          "ticket_no"
+        ],
+        "properties": {
+          "ticket_no": {
+            "type": "string",
+            "description": "售后工单号，申报时返回"
+          }
+        }
+      },
+      "req_ticketResponse": {
+        "type": "object",
+        "required": [
+          "ticket_no",
+          "order_id",
+          "order_no",
+          "state",
+          "description",
+          "created_at",
+          "updated_at",
+          "events"
+        ],
+        "properties": {
+          "ticket_no": {
+            "type": "string",
+            "description": "售后工单号"
+          },
+          "order_id": {
+            "type": "integer",
+            "format": "int64",
+            "description": "关联订单数字标识"
+          },
+          "order_no": {
+            "type": "string",
+            "description": "关联订单号"
+          },
+          "state": {
+            "type": "string",
+            "enum": [
+              "open",
+              "resolving",
+              "resolved",
+              "rejected"
+            ],
+            "description": "工单状态：待核实 / 核实中 / 已处理 / 不成立"
+          },
+          "description": {
+            "type": "string",
+            "description": "申报时填写的问题描述"
+          },
+          "created_at": {
+            "type": "string",
+            "description": "申报时间，UTC RFC 3339"
+          },
+          "updated_at": {
+            "type": "string",
+            "description": "最近更新时间"
+          },
+          "resolved_at": {
+            "type": "string",
+            "description": "处理完成时间；未处理完为空"
+          },
+          "events": {
+            "type": "array",
+            "description": "工单全过程，按时间升序；每个元素是一条处理记录",
+            "items": {
+              "type": "object",
+              "required": [
+                "at",
+                "actor",
+                "state",
+                "desc"
+              ],
+              "properties": {
+                "at": {
+                  "type": "string",
+                  "description": "发生时间，UTC RFC 3339"
+                },
+                "actor": {
+                  "type": "string",
+                  "enum": [
+                    "distributor",
+                    "platform",
+                    "system"
+                  ],
+                  "description": "操作方：分销商 / 平台 / 系统"
+                },
+                "state": {
+                  "type": "string",
+                  "enum": [
+                    "open",
+                    "resolving",
+                    "resolved",
+                    "rejected"
+                  ],
+                  "description": "该条记录对应的工单状态"
+                },
+                "desc": {
+                  "type": "string",
+                  "description": "处理说明，可能为空串"
+                },
+                "evidence": {
+                  "type": "array",
+                  "maxItems": 10,
+                  "description": "该条记录附加的证据，最多 10 条",
+                  "items": {
+                    "type": "object",
+                    "required": [
+                      "kind"
+                    ],
+                    "properties": {
+                      "kind": {
+                        "type": "string",
+                        "enum": [
+                          "text",
+                          "link"
+                        ],
+                        "description": "文本或链接"
+                      },
+                      "content": {
+                        "type": "string",
+                        "description": "kind=text 时的文本内容"
+                      },
+                      "url": {
+                        "type": "string",
+                        "description": "kind=link 时的链接地址"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "x-commands": [
+    {
+      "cmd": "ping",
+      "method": "get",
+      "summary": "连通性检测（dujiao-next 兼容）",
+      "permission": null,
+      "path": "/dist/api/v1/ping",
+      "request": {
+        "$ref": "#/components/schemas/pingRequest"
+      },
+      "response": {
+        "$ref": "#/components/schemas/pingResponse"
+      }
+    },
+    {
+      "cmd": "get_categories",
+      "method": "get",
+      "summary": "获取商品目录（分类）",
+      "permission": "catalog.read",
+      "path": "/dist/api/v1/get_categories",
+      "request": {
+        "$ref": "#/components/schemas/get_categoriesRequest"
+      },
+      "response": {
+        "$ref": "#/components/schemas/get_categoriesResponse"
+      }
+    },
+    {
+      "cmd": "get_goods",
+      "method": "get",
+      "summary": "获取商品清单（含 SKU）",
+      "permission": "catalog.read",
+      "path": "/dist/api/v1/get_goods",
+      "request": {
+        "$ref": "#/components/schemas/get_goodsRequest"
+      },
+      "response": {
+        "$ref": "#/components/schemas/get_goodsResponse"
+      }
+    },
+    {
+      "cmd": "get_avail",
+      "method": "post",
+      "summary": "查询可售数量（按商品，支持指定 SKU）",
+      "permission": "avail.read",
+      "path": "/dist/api/v1/get_avail",
+      "request": {
+        "$ref": "#/components/schemas/get_availRequest"
+      },
+      "response": {
+        "$ref": "#/components/schemas/get_availResponse"
+      }
+    },
+    {
+      "cmd": "get_quote",
+      "method": "post",
+      "summary": "获取报价（按商品取单价，不含数量）",
+      "permission": "quote.read",
+      "path": "/dist/api/v1/get_quote",
+      "request": {
+        "$ref": "#/components/schemas/get_quoteRequest"
+      },
+      "response": {
+        "$ref": "#/components/schemas/get_quoteResponse"
+      }
+    },
+    {
+      "cmd": "post_order",
+      "method": "post",
+      "summary": "请求下单",
+      "permission": "order.create",
+      "path": "/dist/api/v1/post_order",
+      "request": {
+        "$ref": "#/components/schemas/post_orderRequest"
+      },
+      "response": {
+        "$ref": "#/components/schemas/post_orderResponse"
+      }
+    },
+    {
+      "cmd": "get_orders",
+      "method": "get",
+      "summary": "查询订单",
+      "permission": "order.read",
+      "path": "/dist/api/v1/get_orders",
+      "request": {
+        "$ref": "#/components/schemas/get_ordersRequest"
+      },
+      "response": {
+        "$ref": "#/components/schemas/get_ordersResponse"
+      }
+    },
+    {
+      "cmd": "req_cancel",
+      "method": "post",
+      "summary": "取消订单",
+      "permission": "cancel.write",
+      "path": "/dist/api/v1/req_cancel",
+      "request": {
+        "$ref": "#/components/schemas/req_cancelRequest"
+      },
+      "response": {
+        "$ref": "#/components/schemas/req_cancelResponse"
+      }
+    },
+    {
+      "cmd": "open_ticket",
+      "method": "post",
+      "summary": "申报售后工单",
+      "permission": "after_sales.write",
+      "path": "/dist/api/v1/open_ticket",
+      "request": {
+        "$ref": "#/components/schemas/open_ticketRequest"
+      },
+      "response": {
+        "$ref": "#/components/schemas/open_ticketResponse"
+      }
+    },
+    {
+      "cmd": "req_ticket",
+      "method": "get",
+      "summary": "查询售后工单全过程",
+      "permission": "after_sales.read",
+      "path": "/dist/api/v1/req_ticket",
+      "request": {
+        "$ref": "#/components/schemas/req_ticketRequest"
+      },
+      "response": {
+        "$ref": "#/components/schemas/req_ticketResponse"
+      }
+    }
+  ]
+}

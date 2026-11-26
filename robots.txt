@@ -1,0 +1,3 @@
+Sitemap: https://xstock-team.github.io/sitemap.xml
+User-agent:*
+Disallow:
